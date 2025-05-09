@@ -1,7 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\CMS\Entities\NewsEntity;
 
 Route::get('/', function () {
-    return view('welcome');
+    $news = new NewsEntity();
 });
