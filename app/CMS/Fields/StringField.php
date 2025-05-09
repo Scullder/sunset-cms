@@ -2,9 +2,9 @@
 
 namespace App\CMS\Fields;
 
-use App\CMS\BaseComponent;
+use App\CMS\Field;
 
-class StringField extends BaseComponent
+class StringField extends Field
 {
     public function render(): string
     {

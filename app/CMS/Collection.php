@@ -12,7 +12,7 @@ abstract class Collection extends BaseComponent implements \ArrayAccess, \Counta
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
-        
+
         if (!is_subclass_of($this->itemType, BaseComponent::class)) {
             throw new \InvalidArgumentException("Collection item type must extend BaseComponent");
         }
@@ -31,7 +31,6 @@ abstract class Collection extends BaseComponent implements \ArrayAccess, \Counta
 
     protected function validateItem(mixed $value): void
     {
-        // Allow collections of the exact type or subclasses
         if (!$value instanceof $this->itemType) {
             throw new \InvalidArgumentException(sprintf(
                 'Collection only accepts items of type %s, %s given',
@@ -39,11 +38,6 @@ abstract class Collection extends BaseComponent implements \ArrayAccess, \Counta
                 is_object($value) ? get_class($value) : gettype($value)
             ));
         }
-
-        // Additional check if this is a collection of collections
-        // if ($value instanceof CollectionComponent) {
-        //     $this->validateNestedCollectionType($value);
-        // }
     }
 
     public function offsetSet(mixed $offset, mixed $value): void
@@ -55,7 +49,7 @@ abstract class Collection extends BaseComponent implements \ArrayAccess, \Counta
         } else {
             $this->items[$offset] = $value;
         }
-        
+
         // $this->children[] = $value;
     }
 
@@ -79,17 +73,26 @@ abstract class Collection extends BaseComponent implements \ArrayAccess, \Counta
     public function add(BaseComponent $item): void
     {
         $this[] = $item;
+        $item->setParent($this, 'items[' . (count($this->items) - 1) . ']');
+        // $this->updateChildPaths();
+    }
+
+    public function remove(int $index): void
+    {
+        unset($this->items[$index]);
+        $this->items = array_values($this->items); // Re-index
+        // $this->updateChildPaths();
     }
 
     public function render(): string
     {
         $output = '<div class="component-collection" style="border:1px solid #ccc;padding:1rem;margin:1rem 0">';
         $output .= '<h3>' . $this->getAdminAttribute('label') . '</h3>';
-        
+
         foreach ($this->items as $item) {
             $output .= $item->render();
         }
-        
+
         return $output . '</div>';
     }
 }

@@ -12,17 +12,19 @@ trait ComponentInitializer
 
         foreach ($reflection->getProperties() as $property) {
             if (!$property->isInitialized($this) && is_subclass_of($property->getType()->getName(), BaseComponent::class)) {
-                $this->initializeBaseComponentProperty($property);
+                $this->initializeProperty($property);
             }
         }
     }
 
-    protected function initializeBaseComponentProperty(\ReflectionProperty $property): void
+    protected function initializeProperty(\ReflectionProperty $property): void
     {
-        $propertyType = $property->getType()->getName();
-        $instance = new $propertyType($this->getPropertyAttributes($property));
-        $property->setValue($this, $instance);
-        $this->children[$property->getName()] = $instance;
+        $component = $this->createComponent($property);
+        $component->setParent($this, $property->getName());
+        
+        $property->setValue($this, $component);
+
+        $this->children[$property->getName()] = $component;
     }
 
     protected function getPropertyAttributes(\ReflectionProperty $property): array
@@ -34,5 +36,12 @@ trait ComponentInitializer
         }
 
         return $propertyAttrs;
+    }
+
+    protected function createComponent(\ReflectionProperty $property): BaseComponent
+    {
+        $propertyType = $property->getType()->getName();
+
+        return new $propertyType($this->getPropertyAttributes($property));
     }
 }

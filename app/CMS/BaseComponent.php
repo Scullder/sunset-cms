@@ -6,13 +6,17 @@ use App\Interfaces\Renderable;
 use App\Traits\ComponentInitializer;
 use App\Attrs\AdminAttr;
 use App\Attrs\DBAttr;
+use App\CMS\Collection;
 
 abstract class BaseComponent implements Renderable
 {
     use ComponentInitializer;
-    
+
     protected array $attributes = [];
     protected array $children = [];
+    protected string $path = '';
+    protected ?BaseComponent $parent = null;
+    protected string $parentPropertyName = '';
 
     public function __construct(array $attributes = [])
     {
@@ -40,7 +44,7 @@ abstract class BaseComponent implements Renderable
         return $this->attributes[$code][$key];
     }
 
-    public function getAdminAttribute(string $key): mixed 
+    public function getAdminAttribute(string $key): mixed
     {
         return $this->getAttribute(AdminAttr::class, $key);
     }
@@ -50,25 +54,69 @@ abstract class BaseComponent implements Renderable
         return $this->getAttribute(DBAttr::class, $key);
     }
 
-    // protected function initializeComponents(): void
-    // {
-    //     $reflection = new \ReflectionClass($this);
+    public function setPath(string $path): void
+    {
+        $this->path = $path;
+    }
 
-    //     foreach ($reflection->getProperties() as $property) {
-    //         $propertyType = $property->getType()->getName();
-    //         if (!is_subclass_of($propertyType, BaseComponent::class)) {
-    //             continue;
-    //         }
-            
-    //         $propertyAttrs = [];
-    //         foreach ($property->getAttributes() as $attr) {
-    //             $attrInstance = $attr->newInstance();
-    //             $propertyAttrs[get_class($attrInstance)] = $attrInstance;
-    //         }
+    public function getPath(): ?string
+    {
+        return $this->path;
+    }
 
-    //         $component = new $propertyType($propertyAttrs);
-    //         $property->setValue($this, $component);
-    //         $this->children[$property->getName()] = $component;
-    //     }
-    // }
+    public function setParent(BaseComponent $parent, string $parentPropertyName): void
+    {
+        $this->parent = $parent;
+        $this->parentPropertyName = $parentPropertyName;
+
+        $this->updatePath();
+        $this->updateChildPaths();
+    }
+
+    public function getParent(): ?BaseComponent
+    {
+        return $this->parent;
+    }
+
+    public function setParentPropertyName(string $name): void
+    {
+        $this->parentPropertyName = $name;
+    }
+
+    public function getParentPropertyName(): string
+    {
+        return $this->parentPropertyName;
+    }
+
+    protected function isCollection(): bool
+    {
+        return $this instanceof Collection;
+    }
+
+    public function updateChildPaths(): void
+    {
+        foreach ($this->children as $child) {
+            $child->updatePath();
+            $child->updateChildPaths();
+        }
+
+        // Only handle items if this is a collection
+        if ($this->isCollection()) {
+            /** @var Collection $this */
+            foreach ($this->items as $index => $item) {
+                $item->updatePath();
+                $item->updateChildPaths();
+            }
+        }
+    }
+
+    protected function updatePath(): void
+    {
+        $this->path = '';
+
+        if ($this->parent) {
+            $parentPath = $this->parent->getPath();
+            $this->path = ($parentPath !== '') ? "$parentPath.{$this->parentPropertyName}" : $this->parentPropertyName;
+        }
+    }
 }
