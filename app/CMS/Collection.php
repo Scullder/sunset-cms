@@ -95,4 +95,18 @@ abstract class Collection extends BaseComponent implements \ArrayAccess, \Counta
 
         return $output . '</div>';
     }
+
+    public function getItemType(): string
+    {
+        return $this->itemType;
+
+        // return is_subclass_of($this->itemType, Collection::class)
+        //     ? $this->itemType::getItemType() // Drill down to final type
+        //     : $this->itemType;
+    }
+
+    public function isNestedCollection(): bool
+    {
+        return is_subclass_of($this->itemType, Collection::class);
+    }
 }

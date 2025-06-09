@@ -42,6 +42,6 @@ trait ComponentInitializer
     {
         $propertyType = $property->getType()->getName();
 
-        return new $propertyType($this->getPropertyAttributes($property));
+        return new $propertyType(attributes: $this->getPropertyAttributes($property));
     }
 }

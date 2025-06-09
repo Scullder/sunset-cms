@@ -7,6 +7,7 @@ use App\Traits\ComponentInitializer;
 use App\Attrs\AdminAttr;
 use App\Attrs\DBAttr;
 use App\CMS\Collection;
+use Illuminate\Support\Str;
 
 abstract class BaseComponent implements Renderable
 {
@@ -31,25 +32,29 @@ abstract class BaseComponent implements Renderable
         return $this->children;
     }
 
-    public function getAttribute(string $code, string $key): mixed
+    public function getAttribute(string $code, ?string $key = null): mixed
     {
         if (!isset($this->attributes[$code])) {
             throw new \Exception("Attribute class $code dosn't add for this instance of BaseComponent!");
         }
 
-        if (!isset($this->attributes[$key])) {
+        if ($key && !isset($this->attributes[$key])) {
             throw new \Exception("Attribute $key not found!");
         }
 
+        if (!$key) {
+            return $this->attributes[$code];
+        }
+        
         return $this->attributes[$code][$key];
     }
 
-    public function getAdminAttribute(string $key): mixed
+    public function getAdminAttribute(?string $key = null): mixed
     {
         return $this->getAttribute(AdminAttr::class, $key);
     }
 
-    public function getDBAttribute(string $key): mixed
+    public function getDBAttribute(?string $key = null): mixed
     {
         return $this->getAttribute(DBAttr::class, $key);
     }
@@ -115,8 +120,13 @@ abstract class BaseComponent implements Renderable
         $this->path = '';
 
         if ($this->parent) {
-            $parentPath = $this->parent->getPath();
-            $this->path = ($parentPath !== '') ? "$parentPath.{$this->parentPropertyName}" : $this->parentPropertyName;
+            if (!$parentPath = $this->parent->getPath()) {
+                $parentPath = Str::snake(class_basename($this->parent));
+            }
+
+            $this->path = ($parentPath != '') 
+                ? "$parentPath.{$this->parentPropertyName}" 
+                : $this->parentPropertyName;
         }
     }
 }
