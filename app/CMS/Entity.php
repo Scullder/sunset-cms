@@ -3,6 +3,7 @@
 namespace App\CMS;
 
 use App\CMS\BaseComponent;
+
 class Entity extends BaseComponent
 {
     public function render(): string

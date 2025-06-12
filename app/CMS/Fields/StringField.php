@@ -10,9 +10,14 @@ class StringField extends Field
     {
         return <<<HTML
         <div class="field string-field">
-            <label>{$this->getAttribute('label', 'String Field')}</label>
+            <label>{$this->getAdminAttribute('label')}</label>
             <input type="text" name="">
         </div>
         HTML;
+    }
+
+    protected function isValidType(mixed $value): bool
+    {
+        return is_string($value);
     }
 }

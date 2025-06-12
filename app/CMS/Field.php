@@ -3,20 +3,29 @@
 namespace App\CMS;
 
 use App\CMS\BaseComponent;
+use App\Traits\PathHasher;
 
 abstract class Field extends BaseComponent
 {
-    protected $value;
+    use PathHasher;
+
+    protected mixed $value;
     private static array $pathMap = [];
 
-    public function __construct(mixed $value = null, array $attributes = [])
+    private function validateType(mixed $value): void
     {
-        parent::__construct($attributes);
-        $this->value = $value;
+        if ($value !== null && !$this->isValidType($value)) {
+            throw new \InvalidArgumentException(
+                sprintf('Invalid type for field %s!', static::class)
+            );
+        }
     }
+
+    abstract protected function isValidType(mixed $value): bool;
 
     public function set(mixed $value)
     {
+        $this->validateType($this->value);
         $this->value = $value;
     }
 
@@ -28,18 +37,5 @@ abstract class Field extends BaseComponent
     public function getInputName(): string
     {
         return Field::registerPath($this->path);
-    }
-
-    protected static function registerPath(string $path): string
-    {
-        $hash = 'f_' . substr(md5($path), 0, 8);
-        self::$pathMap[$hash] = $path;
-        
-        return $hash;
-    }
-
-    public static function getPathFromHash(string $hash): ?string
-    {
-        return self::$pathMap[$hash] ?? null;
     }
 }

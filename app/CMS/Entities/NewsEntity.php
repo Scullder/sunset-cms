@@ -26,7 +26,6 @@ class NewsEntity extends Entity
     #[AdminAttr(label: 'Locations')]
     public LocationCollection $locations;
 
-    // news_entity_locationGroups_
     #[AdminAttr(label: 'Locations groups')]
     public LocationGroupCollection $locationsGroups;
 }

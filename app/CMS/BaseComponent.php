@@ -38,7 +38,7 @@ abstract class BaseComponent implements Renderable
             throw new \Exception("Attribute class $code dosn't add for this instance of BaseComponent!");
         }
 
-        if ($key && !isset($this->attributes[$key])) {
+        if ($key && !isset($this->attributes[$code][$key])) {
             throw new \Exception("Attribute $key not found!");
         }
 
